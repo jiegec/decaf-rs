@@ -47,7 +47,7 @@ impl<'p> Parser<'p> {
     let table = &table[target];
     let (prod, rhs) = if let Some(x) = table.get(&(lookahead.ty as u32)) { x } else {
       self.error(lookahead, lexer.loc());
-      unimplemented!()
+      return StackItem::_Fail;
     };
     let value_stk = rhs.iter().map(|&x| {
       if is_nt(x) {
