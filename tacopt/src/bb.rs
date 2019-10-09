@@ -199,7 +199,7 @@ impl<'a> FuncBB<'a> {
     crate::common_expr::work(self);
     crate::copy_prop::work(self);
     crate::const_prop::work(self);
-    crate::aliveness::work(self);
+    //crate::aliveness::work(self);
   }
 
   pub fn optimizen(&mut self, n: u32) {
