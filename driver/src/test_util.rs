@@ -3,7 +3,7 @@ use colored::*;
 use crate::{CompileCfg, Parser, Stage, Alloc};
 
 #[derive(Copy, Clone)]
-pub enum Pa { Pa1a, Pa1b, Pa2, Pa3, Pa4, Pa5 }
+pub enum Pa { Pa1a, Pa1b, Pa2, Pa3, Pa4, Pa5, Pa5Wast }
 
 impl Pa {
   pub fn to_cfg(self) -> CompileCfg {
@@ -14,6 +14,7 @@ impl Pa {
         Pa::Pa3 => Stage::Tac,
         Pa::Pa4 => Stage::TacOpt,
         Pa::Pa5 => Stage::Asm,
+        Pa::Pa5Wast => Stage::AsmWast,
       },
       parser: match self { Pa::Pa1b => Parser::LL, _ => Parser::LR },
     }
@@ -92,6 +93,9 @@ pub fn run(i: impl AsRef<Path>, o: impl AsRef<Path>, pa: Pa) -> io::Result<Strin
         Command::new(SPIM_PATH).arg("-file").arg(o.with_extension("s"))
           .stdout(Stdio::from(File::create(&o)?)).spawn()?.wait()?;
         fs::read_to_string(o)?
+      }
+      Stage::AsmWast => {
+        unimplemented!()
       }
     }
     Err(e) => {
