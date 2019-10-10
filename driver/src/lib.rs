@@ -6,7 +6,7 @@ use common::{IndentPrinter, Errors};
 use syntax::{ASTAlloc, Ty, parser, parser_ll};
 use typeck::TypeCkAlloc;
 use tacopt::bb::FuncBB;
-use codegen::mips_gen;
+use codegen::{mips_gen, wast_gen};
 use tac::Tac;
 use typed_arena::Arena;
 
@@ -68,8 +68,8 @@ pub fn compile<'a>(code: &'a str, alloc: &'a Alloc<'a>, cfg: CompileCfg) -> Resu
       let asm = mips_gen::FuncGen::work(&fu, &tp, codegen::AllocMethod::Brute);
       print::mips::func(&asm, f.name, &mut p);
     } else if cfg.stage == Stage::AsmWast {
-      let asm = mips_gen::FuncGen::work(&fu, &tp, codegen::AllocMethod::Brute);
-      print::wast::func(&asm, f.name, &mut p);
+      let asm = wast_gen::FuncGen::work(&fu, &tp, codegen::AllocMethod::Brute);
+      print::wast::func(&asm, f.name, &mut p, &f);
     } else { // cfg.stage == Stage::TacOpt
       new_funcs.push(fu.to_tac_func());
     }
