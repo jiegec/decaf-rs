@@ -2,7 +2,6 @@ use common::{BinOp, IgnoreResult, UnOp};
 use std::fmt;
 use tac::{Operand, CallKind, Intrinsic};
 
-pub const TRAMPOLINE_INDEX: u32 = 255;
 pub type Reg = u32;
 type Imm = i32;
 
@@ -62,11 +61,11 @@ impl fmt::Debug for AsmTemplate {
       Label(label) => {
         write!(f, ") ;; label {}", label)
       }
-      Jmp(t, l) => write!(f, "(set_local {} (i32.const {})) (br ${}) ;; Jump to L{}", TRAMPOLINE_INDEX, l, t, l),
+      Jmp(t, l) => write!(f, "(set_global $trampoline (i32.const {})) (br ${}) ;; Jump to L{}", l, t, l),
       Jif(t, l, cond, z) => if *z {
-        write!(f, "(set_local {} (i32.const {})) (br_if ${} (i32.eq (get_local {}) (i32.const 0))) ;; Jump if T{} == 0 to L{}", TRAMPOLINE_INDEX, l, t, cond, cond, l)
+        write!(f, "(set_global $trampoline (i32.const {})) (br_if ${} (i32.eq (get_local {}) (i32.const 0))) ;; Jump if T{} == 0 to L{}", l, t, cond, cond, l)
       } else {
-        write!(f, "(set_local {} (i32.const {})) (br_if ${} (get_local {})) ;; Jump to T{} != 0 L{}", TRAMPOLINE_INDEX, l, t, cond, cond, l)
+        write!(f, "(set_global $trampoline (i32.const {})) (br_if ${} (get_local {})) ;; Jump to T{} != 0 L{}", l, t, cond, cond, l)
       }
       _ => Ok(())
     }
