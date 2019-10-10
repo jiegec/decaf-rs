@@ -43,10 +43,13 @@ pub fn data(pr: &TacProgram, p: &mut IndentPrinter) {
   // Total static data extent
   let extent = offset + 4;
   offset = 0;
+  write!(p, ";; Memory extent").ignore();
   write!(p, "(data (i32.const {}) {})", offset, to_wasm_int(extent)).ignore();
+  writeln!(p).ignore();
   offset += 4;
 
   for v in &pr.vtbl {
+    write!(p, ";; VTBL({})", v.class).ignore();
     // VTbl symbol as a func
     write!(p, "(func $_{} (result i32)", v.class).ignore();
     p.indent(|p| write!(p, "(i32.const {}))", offset).ignore());
@@ -70,18 +73,21 @@ pub fn data(pr: &TacProgram, p: &mut IndentPrinter) {
     // name
     write!(p, "(data (i32.const {}) {})", offset, to_wasm_string(name)).ignore();
     offset += wasm_string_len(name);
+    writeln!(p).ignore();
   }
   writeln!(p).ignore();
   for (idx, s) in pr.str_pool.iter().enumerate() {
     write!(p, "(func $_STRING{} (result i32)", idx).ignore();
     p.indent(|p| write!(p, "(i32.const {}))", offset).ignore());
     write!(p, "(data (i32.const {}) {})", offset, to_wasm_string(s)).ignore();
-    offset += s.len() + 1;
+    offset += wasm_string_len(s);
   }
   writeln!(p).ignore();
 }
 
-pub fn func(f: &[AsmTemplate], name: FuncNameKind, p: &mut IndentPrinter, fun: &TacFunc) {
+pub fn func(f: &(usize, Vec<AsmTemplate>), name: FuncNameKind, p: &mut IndentPrinter, fun: &TacFunc) {
+  let (bb_count, f) = f;
+
   let mut func_declaration = format!("(func ${:?} (", name);
   if fun.param_num > 0 {
     func_declaration.push_str("param");
@@ -104,10 +110,34 @@ pub fn func(f: &[AsmTemplate], name: FuncNameKind, p: &mut IndentPrinter, fun: &
       write!(p, "{}", locals).ignore();
     }
 
+    if *bb_count > 0 {
+      write!(p, "(loop ${:?}_T", name).ignore();
+      p.inc();
+      for i in (0..*bb_count).rev() {
+        write!(p, "(block ${:?}_L{}", name, i).ignore();
+      }
+      p.indent(|p| {
+        let mut table = String::new();
+        table.push_str("(br_table");
+        for i in 0..*bb_count {
+          table.push_str(&format!(" ${:?}_L{}", name, i));
+        }
+        write!(p, "{} (get_local 31))", table).ignore();
+        write!(p, ") ;; label ${:?}_L0", name).ignore();
+      });
+      p.inc();
+    }
+
     for asm in f {
       write!(p, "{:?}", asm).ignore();
     }
-    write!(p, ")").ignore();
+
+    if *bb_count > 0 {
+      p.dec();
+      write!(p, ")").ignore();
+      p.dec();
+    }
+    write!(p, "(unreachable))").ignore();
   });
   writeln!(p).ignore();
 }

@@ -17,20 +17,20 @@ pub struct FuncGen<'a, 'b> {
 }
 
 impl<'a: 'b, 'b> FuncGen<'a, 'b> {
-  pub fn work(f: &FuncBB<'a>, p: &'b TacProgram<'a>, m: AllocMethod) -> Vec<AsmTemplate> {
+  pub fn work(f: &FuncBB<'a>, p: &'b TacProgram<'a>, m: AllocMethod) -> (usize, Vec<AsmTemplate>) {
     let mut fu = FuncGen { param_num: f.param_num, max_reg: f.max_reg, max_param: 0, name: f.name, program: p, bb: Vec::new() };
     fu.populate(f);
 
-    fu.bb.into_iter()
+    (fu.bb.len(), fu.bb.into_iter()
       .flat_map(|(b, _)| b.into_iter())
-      .collect()
+      .collect())
   }
 
   fn populate(&mut self, f: &FuncBB<'a>) {
     for (idx, b1) in f.bb.iter().enumerate() {
       let mut b2 = Vec::new();
-      if !(b1.prev.is_empty() || (b1.prev.len() == 1 && b1.prev[0] + 1 == idx as u32)) {
-        b2.push(AsmTemplate::Label(format!("{:?}_L{}:", self.name, idx + 1)));
+      if idx > 0 {
+        b2.push(AsmTemplate::Label(format!("{:?}_L{}:", self.name, idx)));
       }
       let mut arg_cnt = 0;
       for t in b1.iter() {
@@ -76,7 +76,7 @@ impl FuncGen<'_, '_> {
       TacKind::Store { src_base, off, .. } => {
         b.push(Sw(src_base[0], src_base[1], off));
       }
-      TacKind::LoadInt { dst, i } => b.push(Li(dst, i)),
+      TacKind::LoadInt { dst, i } => b.push(Mv(dst, Operand::Const(i))),
       TacKind::LoadStr { dst, s } => b.push(La(dst, format!("_STRING{}", s))),
       TacKind::LoadVTbl { dst, v } => b.push(La(dst, format!("_{}", self.program.vtbl[v as usize].class))),
       TacKind::Label { .. } | TacKind::Ret { .. } | TacKind::Jmp { .. } | TacKind::Jif { .. } => unreachable!("Shouldn't meet Ret/Jmp/Jif/Label in a tac bb."),
@@ -93,10 +93,12 @@ impl FuncGen<'_, '_> {
         [Some(epilogue), None]
       }
       NextKind::Jmp(jump) => {
-        [Some(jump + 1), None]
+        b.push(AsmTemplate::Jmp(format!("{:?}_T", self.name), jump));
+        [Some(jump), None]
       }
       NextKind::Jif { cond, z, fail, jump } => {
-        [Some(fail + 1), Some(jump + 1)]
+        b.push(AsmTemplate::Jif(format!("{:?}_L{}", self.name, jump), cond, z));
+        [Some(fail), Some(jump)]
       }
       NextKind::Halt => {
         [None, None]

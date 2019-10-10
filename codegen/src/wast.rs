@@ -13,12 +13,13 @@ pub enum AsmTemplate {
   CallStatic(Option<u32>, String),
   CallVirtual(Option<u32>, Operand),
   CallIntrinsic(Option<u32>, Intrinsic),
-  Ret(Option<Operand>),
   Lw(Reg /* dst */, Operand /* base */, Imm),
   Sw(Operand /* src */, Operand /* base */, Imm),
-  Li(Reg, Imm),
   La(Reg, String),
   Label(String),
+  Jmp(String, u32),
+  Jif(String, Reg, bool /* z */),
+  Ret(Option<Operand>),
 }
 
 impl fmt::Debug for AsmTemplate {
@@ -41,10 +42,14 @@ impl fmt::Debug for AsmTemplate {
       La(dst, addr) => write!(f, "(set_local {} (call ${}))", dst, addr),
       Ret(ret) => match ret {
         Some(op) => {
-          write!(f, "{}", operand_str(op))
+          write!(f, "(return {})", operand_str(op))
         }
-        None => write!(f, "(i32.const 0)")
+        None => write!(f, "")
       },
+      Label(label) => {
+        write!(f, ") ;; label {}", label)
+      }
+      Jmp(t, l) => write!(f, "(set_local 31 (i32.const {})) (br ${}) ;; Jump to L{}", l - 1, t, l),
       _ => Ok(())
     }
   }
