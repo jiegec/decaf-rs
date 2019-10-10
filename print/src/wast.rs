@@ -33,15 +33,20 @@ pub fn data(pr: &TacProgram, p: &mut IndentPrinter) {
   write!(p, "(export \"memory\" (memory 0))").ignore();
 
   let mut offsets = Vec::new();
-  let mut offset = 0;
+  let mut offset = 4;
+  // calculate vtable offsets
   for v in &pr.vtbl {
     let (_, name) = pr.str_pool.get_full(v.class).expect("tacgen should have put class name into `str_pool`");
     let size = 4 + 4 + v.func.len() * 4 + wasm_string_len(name);
     offsets.push(offset);
     offset += size;
   }
+  // calculate string offsets
+  for (_idx, s) in pr.str_pool.iter().enumerate() {
+    offset += wasm_string_len(s);
+  }
   // Total static data extent
-  let extent = offset + 4;
+  let extent = offset;
   offset = 0;
   write!(p, ";; Memory extent").ignore();
   write!(p, "(data (i32.const {}) {})", offset, to_wasm_int(extent)).ignore();
