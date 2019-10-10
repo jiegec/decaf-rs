@@ -97,9 +97,9 @@ pub fn func(f: &(usize, Vec<AsmTemplate>), name: FuncNameKind, p: &mut IndentPri
   if fun.param_num > 0 {
     func_declaration.push_str("param");
     for _ in 0..fun.param_num {
-      func_declaration.push_str(" i32)");
+      func_declaration.push_str(" i32");
     }
-    func_declaration.push_str(" (");
+    func_declaration.push_str(") (");
   }
   func_declaration.push_str("result i32)");
   write!(p, "{}", func_declaration).ignore();

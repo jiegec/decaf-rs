@@ -78,10 +78,10 @@ pub fn bin_str(op: &BinOp) -> &'static str {
     BinOp::Or => "i32.or",
     BinOp::Eq => "i32.eq",
     BinOp::Ne => "i32.ne",
-    BinOp::Lt => "i32.lt",
-    BinOp::Le => "i32.le",
-    BinOp::Gt => "i32.gt",
-    BinOp::Ge => "i32.ge",
+    BinOp::Lt => "i32.lt_s",
+    BinOp::Le => "i32.le_s",
+    BinOp::Gt => "i32.gt_s",
+    BinOp::Ge => "i32.ge_s",
   }
 }
 
