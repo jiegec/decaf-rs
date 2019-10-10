@@ -47,12 +47,14 @@ pub fn data(pr: &TacProgram, p: &mut IndentPrinter) {
   }
   // Total static data extent
   let extent = offset;
+  let mut table_offset = 0;
   offset = 0;
   write!(p, ";; Memory extent").ignore();
   write!(p, "(data (i32.const {}) {})", offset, to_wasm_int(extent)).ignore();
   writeln!(p).ignore();
   offset += 4;
 
+  // VTable
   for v in &pr.vtbl {
     write!(p, ";; VTBL({})", v.class).ignore();
     // VTbl symbol as a func
@@ -61,32 +63,51 @@ pub fn data(pr: &TacProgram, p: &mut IndentPrinter) {
 
     // parent
     if let Some(pa) = v.parent {
-      write!(p, "(data (i32.const {}) {})", offset, to_wasm_int(offsets[pa as usize])).ignore();
+      write!(p, "(data (i32.const {}) {}) ;; Parent", offset, to_wasm_int(offsets[pa as usize])).ignore();
     } else {
-      write!(p, "(data (i32.const {}) {})", offset, to_wasm_int(0)).ignore();
+      write!(p, "(data (i32.const {}) {}) ;; Parent", offset, to_wasm_int(0)).ignore();
     }
     offset += 4;
+
     // name ptr
-    write!(p, "(data (i32.const {}) {})", offset, to_wasm_int(offset + 4 + v.func.len() * 4)).ignore();
+    write!(p, "(data (i32.const {}) {}) ;; Name Addr", offset, to_wasm_int(offset + 4 + v.func.len() * 4)).ignore();
     offset += 4;
+
     // funcs
     for &f in &v.func {
-      write!(p, "(data (i32.const {}) {})", offset, to_wasm_string(&format!("{:?}", pr.func[f as usize].name))).ignore();
+      write!(p, "(data (i32.const {}) {}) ;; Table Offset for {:?}", offset, to_wasm_int(table_offset), f).ignore();
+      table_offset += 1;
       offset += 4;
     }
-    let (_, name) = pr.str_pool.get_full(v.class).expect("tacgen should have put class name into `str_pool`");
+
     // name
-    write!(p, "(data (i32.const {}) {})", offset, to_wasm_string(name)).ignore();
+    let (_, name) = pr.str_pool.get_full(v.class).expect("tacgen should have put class name into `str_pool`");
+    write!(p, "(data (i32.const {}) {}) ;; Name", offset, to_wasm_string(name)).ignore();
     offset += wasm_string_len(name);
     writeln!(p).ignore();
   }
   writeln!(p).ignore();
+
   for (idx, s) in pr.str_pool.iter().enumerate() {
     write!(p, "(func $_STRING{} (result i32)", idx).ignore();
     p.indent(|p| write!(p, "(i32.const {}))", offset).ignore());
     write!(p, "(data (i32.const {}) {})", offset, to_wasm_string(s)).ignore();
     offset += wasm_string_len(s);
   }
+  writeln!(p).ignore();
+
+  // VTable Functions
+  write!(p, "(table funcref (elem").ignore();
+  p.indent(|p| {
+    for v in &pr.vtbl {
+      for &f in &v.func {
+        write!(p, "${:?}", pr.func[f as usize].name).ignore();
+        offset += 4;
+      }
+    }
+  });
+  write!(p, "))").ignore();
+  
   writeln!(p).ignore();
 }
 

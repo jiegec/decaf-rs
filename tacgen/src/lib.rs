@@ -261,6 +261,7 @@ impl<'a> TacGen<'a> {
                 None => Reg(0), // this(i.owner is not set during typeck)
               };
               f.push(Param { src: [owner] });
+              let args_len = args.len() + 1;
               for a in args {
                 f.push(Param { src: [a] });
               }
@@ -268,7 +269,7 @@ impl<'a> TacGen<'a> {
               let off = self.func_info[&Ref(fu)].off;
               f.push(Load { dst: slot, base: [owner], off: 0, hint: MemHint::Immutable })
                 .push(Load { dst: slot, base: [Reg(slot)], off: off as i32 * INT_SIZE, hint: MemHint::Immutable });
-              f.push(TacKind::Call { dst: ret, kind: CallKind::Virtual([Reg(slot)], hint) });
+              f.push(TacKind::Call { dst: ret, kind: CallKind::Virtual([Reg(slot)], args_len, hint) });
             }
             ret.unwrap_or(0) // if ret is None, the result can't be assigned to others, so 0 will not be used
           }

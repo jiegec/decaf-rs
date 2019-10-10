@@ -11,7 +11,7 @@ pub enum AsmTemplate {
   Mv(Reg, Operand),
   Param(Operand),
   CallStatic(Option<u32>, String),
-  CallVirtual(Option<u32>, Operand),
+  CallVirtual(Option<u32>, usize /* args len */, Operand),
   CallIntrinsic(Option<u32>, Intrinsic),
   Lw(Reg /* dst */, Operand /* base */, Imm),
   Sw(Operand /* src */, Operand /* base */, Imm),
@@ -35,6 +35,18 @@ impl fmt::Debug for AsmTemplate {
           write!(f, "(set_local {} (call ${}))", dst, fun)
         } else {
           write!(f, "(drop (call ${}))", fun)
+        }
+      },
+      CallVirtual(dst, args_len, fun) => {
+        let mut signature = String::from("(param");
+        for _ in 0..*args_len {
+          signature.push_str(" i32");
+        }
+        signature.push_str(") (result i32)");
+        if let Some(dst) = dst {
+          write!(f, "(set_local {} (call_indirect {} {}))", dst, signature, operand_str(fun))
+        } else {
+          write!(f, "(drop (call_indirect {} {}))", signature, operand_str(fun))
         }
       },
       Lw(dst, base, imm) => write!(f, "(set_local {} (i32.load (i32.add {} (i32.const {}))))", dst, operand_str(base), imm),

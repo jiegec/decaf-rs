@@ -59,8 +59,8 @@ impl FuncGen<'_, '_> {
       }
       TacKind::Call { dst, kind } => {
         match kind {
-          CallKind::Virtual(r, _) => {
-            b.push(CallVirtual(dst, r[0]));
+          CallKind::Virtual(r, args_len, _) => {
+            b.push(CallVirtual(dst, args_len, r[0]));
           }
           CallKind::Static(f, _) => {
             b.push(CallStatic(dst, format!("{:?}", self.program.func[f as usize].name)));
