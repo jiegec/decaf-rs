@@ -31,4 +31,5 @@
     (func $_start
         (drop (call $main)))
     (export "_start" (func $_start))
+    (export "main" (func $_start))
     )

@@ -97,7 +97,7 @@ impl FuncGen<'_, '_> {
         [Some(jump), None]
       }
       NextKind::Jif { cond, z, fail, jump } => {
-        b.push(AsmTemplate::Jif(format!("{:?}_L{}", self.name, jump), cond, z));
+        b.push(AsmTemplate::Jif(format!("{:?}_T", self.name), jump, cond, z));
         [Some(fail), Some(jump)]
       }
       NextKind::Halt => {

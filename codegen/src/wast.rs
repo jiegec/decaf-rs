@@ -18,7 +18,7 @@ pub enum AsmTemplate {
   La(Reg, String),
   Label(String),
   Jmp(String, u32),
-  Jif(String, Reg, bool /* z */),
+  Jif(String, u32, Reg, bool /* z */),
   Ret(Option<Operand>),
 }
 
@@ -44,12 +44,17 @@ impl fmt::Debug for AsmTemplate {
         Some(op) => {
           write!(f, "(return {})", operand_str(op))
         }
-        None => write!(f, "")
+        None => write!(f, "(return (i32.const 0))")
       },
       Label(label) => {
         write!(f, ") ;; label {}", label)
       }
-      Jmp(t, l) => write!(f, "(set_local 31 (i32.const {})) (br ${}) ;; Jump to L{}", l - 1, t, l),
+      Jmp(t, l) => write!(f, "(set_local 31 (i32.const {})) (br ${}) ;; Jump to L{}", l, t, l),
+      Jif(t, l, cond, z) => if *z {
+        write!(f, "(set_local 31 (i32.const {})) (br_if ${} (i32.eq (get_local {}) (i32.const 0))) ;; Jump if T{} == 0 to L{}", l, t, cond, cond, l)
+      } else {
+        write!(f, "(set_local 31 (i32.const {})) (br_if ${} (get_local {})) ;; Jump to T{} != 0 L{}", l, t, cond, cond, l)
+      }
       _ => Ok(())
     }
   }
