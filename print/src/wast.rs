@@ -1,6 +1,6 @@
 use common::{IndentPrinter, IgnoreResult};
 use tac::{TacProgram, FuncNameKind, TacFunc};
-use codegen::wast::AsmTemplate;
+use codegen::wast::{AsmTemplate, TRAMPOLINE_INDEX};
 use std::fmt::Write;
 
 fn to_wasm_int(num: usize) -> String {
@@ -129,7 +129,7 @@ pub fn func(f: &(usize, Vec<AsmTemplate>), name: FuncNameKind, p: &mut IndentPri
       let mut locals = String::new();
       locals.push_str("(local");
       // TODO
-      for _ in 0..32 {
+      for _ in 0..256 {
         locals.push_str(" i32");
       }
       locals.push_str(")");
@@ -148,7 +148,7 @@ pub fn func(f: &(usize, Vec<AsmTemplate>), name: FuncNameKind, p: &mut IndentPri
         for i in 0..*bb_count {
           table.push_str(&format!(" ${:?}_L{}", name, i));
         }
-        write!(p, "{} (get_local 31))", table).ignore();
+        write!(p, "{} (get_local {}))", table, TRAMPOLINE_INDEX).ignore();
         write!(p, ") ;; label ${:?}_L0", name).ignore();
       });
       p.inc();
