@@ -40,7 +40,7 @@ fn mem_kill(kind: TacKind) -> (bool, bool) {
       MemHint::Arr => (false, true),
     }
     TacKind::Call { kind, .. } => match kind {
-      CallKind::Virtual(_, hint) | CallKind::Static(_, hint) => (hint.arg_obj, hint.arg_arr),
+      CallKind::Virtual(_, _, hint) | CallKind::Static(_, hint) => (hint.arg_obj, hint.arg_arr),
       _ => (false, false)
     }
     _ => (false, false)

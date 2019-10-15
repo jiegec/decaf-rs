@@ -15,6 +15,7 @@ fn main() -> io::Result<()> {
     t if t.eq_ignore_ascii_case("pa3") => Pa::Pa3,
     t if t.eq_ignore_ascii_case("pa4") => Pa::Pa4,
     t if t.eq_ignore_ascii_case("pa5") => Pa::Pa5,
+    t if t.eq_ignore_ascii_case("pa5wast") => Pa::Pa5Wast,
     t => {
       eprintln!("invalid target pa: `{}`", t);
       process::exit(1);

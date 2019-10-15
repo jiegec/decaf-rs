@@ -298,7 +298,7 @@ impl FuncGen<'_, '_> {
       }
       TacKind::Call { dst, kind } => {
         let called = match kind {
-          CallKind::Virtual(r, _) => {
+          CallKind::Virtual(r, _, _) => {
             let r = self.build_operand(r[0], b);
             b.push(Jalr(r));
             true

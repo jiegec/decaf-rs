@@ -38,7 +38,7 @@ pub fn write_tac(t: &TacKind, pr: &TacProgram, p: &mut IndentPrinter) {
     Param { src } => { write!(p, "parm {}", opr(&src[0])) }
     Call { dst, kind, } => {
       write!(p, "{}call {}", match dst { Some(dst) => format!("_T{} = ", dst), None => "".to_owned() }, match kind {
-        CallKind::Virtual(fp, _) => opr(&fp[0]),
+        CallKind::Virtual(fp, _, _) => opr(&fp[0]),
         CallKind::Static(f, _) => format!("{:?}", pr.func[*f as usize].name),
         CallKind::Intrinsic(i) => i.name().to_owned(),
       })
