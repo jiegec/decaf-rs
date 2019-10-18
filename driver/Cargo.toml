@@ -17,6 +17,7 @@ typed-arena = "1.4.1"
 tacvm = { git = "https://github.com/MashPlant/tacvm" }
 colored = "1.8"
 clap = "2"
+wat = "1.0.2"
 
 [lib]
 path = "src/lib.rs"
