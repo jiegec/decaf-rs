@@ -95,7 +95,10 @@ pub fn run(i: impl AsRef<Path>, o: impl AsRef<Path>, pa: Pa) -> io::Result<Strin
         fs::read_to_string(o)?
       }
       Stage::AsmWast => {
-        unimplemented!()
+        fs::write(o.with_extension("wast"), &p)?;
+        Command::new("wasmer").arg("run").arg(o.with_extension("wast"))
+          .stdout(Stdio::from(File::create(&o)?)).spawn()?.wait()?;
+        fs::read_to_string(o)?
       }
     }
     Err(e) => {
@@ -129,7 +132,7 @@ pub enum ResultKind {
 
 impl ResultKind {
   pub fn new(out: &str, ans: &str, ignore_line: usize) -> ResultKind {
-    let (mut out_lines, mut ans_lines) = (out.lines().skip(ignore_line), ans.lines().skip(ignore_line));
+    let (mut out_lines, mut ans_lines) = (out.lines().skip(ignore_line), ans.lines());
     let mut first_diff = ignore_line + 1;
     // it seems there is no builtin iter function that implement "zip and pad the shorter one"
     loop {
