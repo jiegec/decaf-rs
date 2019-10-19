@@ -2,7 +2,7 @@ use std::{io::{self, BufReader, BufWriter}, fs::{self, File}, fmt, panic, path::
 use colored::*;
 use crate::{CompileCfg, Parser, Stage, Alloc};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Pa { Pa1a, Pa1b, Pa2, Pa3, Pa4, Pa5, Pa5Wast }
 
 impl Pa {
@@ -28,6 +28,7 @@ const SPIM_INFO_LINE: usize = 1;
 // `folder` should be the path of folder containing `pa_path` and other tools
 // `pa_path` should be relevant to `folder`, i.e., `folder`/`pa_path` is the real path to pa folder
 pub fn test_all(path: impl AsRef<Path>, pa: Pa) -> io::Result<Vec<TestResult>> {
+  println!("Testing {:?}", pa);
   // make color work properly on windows(powershell)
   // if it still doesn't work, or you simply dislike the color, add `colored::control::set_override(false);` before calling `test_all`
   #[cfg(target_os = "windows")] let _ = control::set_virtual_terminal(true);
@@ -95,7 +96,10 @@ pub fn run(i: impl AsRef<Path>, o: impl AsRef<Path>, pa: Pa) -> io::Result<Strin
         fs::read_to_string(o)?
       }
       Stage::AsmWast => {
-        unimplemented!()
+        fs::write(o.with_extension("wast"), &p)?;
+        Command::new("wasmer").arg("run").arg(o.with_extension("wast"))
+          .stdout(Stdio::from(File::create(&o)?)).spawn()?.wait()?;
+        fs::read_to_string(o)?
       }
     }
     Err(e) => {
@@ -129,7 +133,7 @@ pub enum ResultKind {
 
 impl ResultKind {
   pub fn new(out: &str, ans: &str, ignore_line: usize) -> ResultKind {
-    let (mut out_lines, mut ans_lines) = (out.lines().skip(ignore_line), ans.lines().skip(ignore_line));
+    let (mut out_lines, mut ans_lines) = (out.lines().skip(ignore_line), ans.lines());
     let mut first_diff = ignore_line + 1;
     // it seems there is no builtin iter function that implement "zip and pad the shorter one"
     loop {
