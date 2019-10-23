@@ -22,6 +22,7 @@ pub struct Program<'a> {
 
 pub struct ClassDef<'a> {
   pub loc: Loc,
+  pub end: Loc,
   pub name: &'a str,
   pub parent: Option<&'a str>,
   pub field: Vec<FieldDef<'a>>,

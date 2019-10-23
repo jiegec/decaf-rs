@@ -187,8 +187,8 @@ impl<'p> Parser<'p> {
   fn class_list1() -> Vec<&'p ClassDef<'p>> { vec![] }
 
   #[rule(ClassDef -> Class Id MaybeExtends LBrc FieldList RBrc)]
-  fn class_def(&self, c: Token, name: Token, parent: Option<&'p str>, _l: Token, field: Vec<FieldDef<'p>>, _r: Token) -> &'p ClassDef<'p> {
-    self.alloc.class.alloc(ClassDef { loc: c.loc(), name: name.str(), parent, field: field.reversed(), parent_ref: dft(), scope: dft() })
+  fn class_def(&self, c: Token, name: Token, parent: Option<&'p str>, _l: Token, field: Vec<FieldDef<'p>>, r: Token) -> &'p ClassDef<'p> {
+    self.alloc.class.alloc(ClassDef { loc: c.loc(), end: r.loc(), name: name.str(), parent, field: field.reversed(), parent_ref: dft(), scope: dft() })
   }
 
   #[rule(MaybeExtends -> Extends Id)]
