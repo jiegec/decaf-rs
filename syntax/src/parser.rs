@@ -2,6 +2,19 @@ use crate::{ast::*, ty::*, VecExt, dft, check_str, mk_stmt, mk_expr, mk_int_lit,
 use parser_macros::lalr1;
 use common::{ErrorKind, Loc, BinOp, UnOp, Errors, NO_LOC};
 
+pub fn tokens(code: &str) -> Vec<Token> {
+  let mut lexer = Lexer::new(code.as_bytes());
+  let mut result = Vec::new();
+  loop {
+    let token = lexer.next();
+    if token.ty == TokenKind::_Eof {
+      break;
+    }
+    result.push(token);
+  }
+  result
+}
+
 pub fn work<'p>(code: &'p str, alloc: &'p ASTAlloc<'p>) -> Result<&'p Program<'p>, Errors<'p, Ty<'p>>> {
   let mut parser = Parser { alloc, error: Errors::default() };
   let mut lexer = Lexer::new(code.as_bytes()); // Lexer can be used independently from Parser, you can use it to debug
