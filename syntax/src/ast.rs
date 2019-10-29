@@ -181,6 +181,7 @@ pub struct VarSel<'a> {
   pub owner: Option<Box<Expr<'a>>>,
   pub name: &'a str,
   pub var: Cell<Option<&'a VarDef<'a>>>,
+  pub ty: Cell<Ty<'a>>,
 }
 
 pub struct IndexSel<'a> {

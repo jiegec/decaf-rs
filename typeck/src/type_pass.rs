@@ -292,6 +292,7 @@ impl<'a> TypePass<'a> {
           None => self.errors.issue(loc, UndeclaredVar(v.name)),
         };
         self.cur_used = false;
+        v.ty.set(ret);
         ret
       }
     }

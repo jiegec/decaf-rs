@@ -331,7 +331,7 @@ impl<'p> Parser<'p> {
 
   #[rule(VarSel -> MaybeOwner Id)]
   fn var_sel(owner: Option<Box<Expr<'p>>>, name: Token) -> Expr<'p> {
-    mk_expr(name.loc(), VarSel { owner, name: name.str(), var: dft() }.into())
+    mk_expr(name.loc(), VarSel { owner, name: name.str(), var: dft(), ty: dft() }.into())
   }
 
   #[rule(LValue -> VarSel)]

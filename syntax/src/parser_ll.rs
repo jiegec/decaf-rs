@@ -90,10 +90,10 @@ fn merge_idx_id_call<'p>(mut l: Expr<'p>, ts: Vec<IndexOrIdOrCall<'p>>) -> Expr<
         l = mk_expr(loc, IndexSel { arr: Box::new(l), idx: Box::new(idx) }.into()),
       IndexOrIdOrCall::IdOrCall(loc, name, maybe_call) => match maybe_call {
         Some((call_loc, arg)) => {
-          let func = Box::new(mk_expr(loc, VarSel { owner: Some(Box::new(l)), name, var: dft() }.into()));
+          let func = Box::new(mk_expr(loc, VarSel { owner: Some(Box::new(l)), name, var: dft(), ty: dft() }.into()));
           l = mk_expr(call_loc, Call { func, arg, func_ref: dft() }.into());
         }
-        None => l = mk_expr(loc, VarSel { owner: Some(Box::new(l)), name, var: dft() }.into()),
+        None => l = mk_expr(loc, VarSel { owner: Some(Box::new(l)), name, var: dft(), ty: dft() }.into()),
       }
     }
   }
@@ -464,10 +464,10 @@ impl<'p> Parser<'p> {
   fn expr9_id_or_call(name: Token, ioc: Option<(Loc, Vec<Expr<'p>>)>) -> Expr<'p> {
     match ioc {
       Some((loc, arg)) => {
-        let func = Box::new(mk_expr(name.loc(), VarSel { owner: None, name: name.str(), var: dft() }.into()));
+        let func = Box::new(mk_expr(name.loc(), VarSel { owner: None, name: name.str(), var: dft(), ty: dft() }.into()));
         mk_expr(loc, Call { func, arg, func_ref: dft() }.into())
       }
-      None => mk_expr(name.loc(), VarSel { owner: None, name: name.str(), var: dft() }.into()),
+      None => mk_expr(name.loc(), VarSel { owner: None, name: name.str(), var: dft(), ty: dft() }.into()),
     }
   }
   #[rule(Expr9 -> New NewClassOrArray)]
