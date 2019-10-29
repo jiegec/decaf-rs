@@ -242,7 +242,7 @@ impl<'a> TypePass<'a> {
     // access a field that doesn't belong to self & ancestors => PrivateFieldAccess
     // given owner but not found object.a => NoSuchField
 
-    match &v.owner {
+    let res = match &v.owner {
       Some(o) => {
         self.cur_used = true;
         let o_t = self.expr(o);
@@ -292,10 +292,11 @@ impl<'a> TypePass<'a> {
           None => self.errors.issue(loc, UndeclaredVar(v.name)),
         };
         self.cur_used = false;
-        v.ty.set(ret);
         ret
       }
-    }
+    };
+    v.ty.set(res);
+    res
   }
 
   fn call(&mut self, c: &'a Call<'a>, loc: Loc) -> Ty<'a> {
@@ -313,6 +314,7 @@ impl<'a> TypePass<'a> {
         }
         match owner.kind {
           TyKind::Class(cl) | TyKind::Object(cl) => if let Some(symbol) = cl.lookup(v.name) {
+            v.ty.set(symbol.ty());
             self.check_normal_call(v, c, owner, symbol, loc)
           } else {
             self.errors.issue(loc, NoSuchField { name: v.name, owner })
@@ -323,6 +325,7 @@ impl<'a> TypePass<'a> {
       None => {
         let cur = self.cur_class.unwrap();
         if let Some(symbol) = cur.lookup(v.name) {
+          v.ty.set(symbol.ty());
           self.check_normal_call(v, c, Ty::mk_obj(cur), symbol, loc)
         } else {
           self.errors.issue(loc, NoSuchField { name: v.name, owner: Ty::mk_obj(cur) })
